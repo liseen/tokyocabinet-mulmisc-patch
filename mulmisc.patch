@@ -1,0 +1,32 @@
+diff --git a/tokyocabinet-1.4.44-origin/tcadb.c b/tokyocabinet-1.4.44-new/tcadb.c
+index 983517b..ef32f92 100644
+--- a/tokyocabinet-1.4.44-origin/tcadb.c
++++ b/tokyocabinet-1.4.44-new/tcadb.c
+@@ -4112,6 +4112,27 @@ static TCLIST *tcadbmulmisc(ADBMUL *mul, const char *name, const TCLIST *args){
+       }
+     }
+     tclistdel(targs);
++  } else if(!strcmp(name, "put") || !strcmp(name, "putkeep") || !strcmp(name, "putcat") \
++          || !strcmp(name, "out")  || !strcmp(name, "get") || !strcmp(name, "getpart")) {
++      const char *kbuf;
++      int ksiz;
++      TCLISTVAL(kbuf, args, 0, ksiz);
++      int idx = tcadbmulidx(mul, kbuf, ksiz);
++      TCADB *adb = mul->adbs[idx];
++      TCLIST *res = tcadbmisc(adb, name, args);
++      if(res){
++        int rnum = TCLISTNUM(res);
++        for(int j = 0; j < rnum; j++){
++          const char *vbuf;
++          int vsiz;
++          TCLISTVAL(vbuf, res, j, vsiz);
++          TCLISTPUSH(rv, vbuf, vsiz);
++        }
++        tclistdel(res);
++      } else {
++        tclistdel(rv);
++        rv = NULL;
++      }
+   } else {
+     for(int i = 0; i < num; i++){
+       TCLIST *res = tcadbmisc(adbs[i], name, args);
